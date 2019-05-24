@@ -1,0 +1,14 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "extends": ["rawbot", "plugin:vue/essential"],
+  "plugins": ["vue"],
+  "parserOptions": {
+    "parser": "babel-eslint"
+  },
+  "settings": {
+    "propWrapperFunctions": ["forbidExtraProps"]
+  }
+}
