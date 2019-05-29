@@ -8,6 +8,29 @@
       <link href="https://sdx.scsstatic.ch/v1.22.2/css/sdx.min.css" rel="stylesheet">
   </head>
   <body>
+  <script>
+      window.AOTData = {
+          fieldDefinitions: {
+              fieldA: {
+                  filters: ['in', 'start', 'not in', 'end'],
+                  type: String,
+              },
+              fieldB: {
+                  filters: ['in', 'start', 'not in', 'end'],
+                  type: String,
+              },
+              fieldC: {
+                  filters: ['='],
+                  type: Number,
+              },
+          },
+
+          root: {
+              type: 'and',
+              conditions: [{ field: null, value: null, filter: null }],
+          },
+      }
+  </script>
     <noscript>
       <strong>We're sorry but and-or-tree doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>

@@ -27,13 +27,13 @@
       />
     </label>
     <div class="toolbar">
-      <button
-        class="toolbar__item item--show tooltip"
+      <div
+        class="toolbar__item item--disabled item--show tooltip"
         @click="$emit('remove')"
         aria-label="Remove condition"
       >
         <i class="icon icon-202-clear-circle" aria-hidden="true"></i>
-      </button>
+      </div>
     </div>
   </div>
 </template>

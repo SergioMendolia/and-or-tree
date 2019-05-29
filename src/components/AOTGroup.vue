@@ -3,43 +3,43 @@
     <div class="row">
       <div class="col-md-1">
         <div class="toolbar toolbar--vertical">
-          <button class="toolbar__item item--show" @click="toggleActions()">
+          <div class="toolbar__item item--show" @click="toggleActions()">
             <i class="icon icon-053-more" aria-hidden="true"></i>
-          </button>
+          </div>
         </div>
         <div class="drop" v-if="actionsDisplayed" @mouseleave="hideActions()">
           <div class="toolbar toolbar--vertical">
-            <button
+            <div
               class="toolbar__item item--show tooltip"
               @click="addGroup('and')"
               aria-label="Add group"
             >
               <i class="icon icon-028-folder-new" aria-hidden="true"></i>
-            </button>
-            <button
+            </div>
+            <div
               class="toolbar__item item--show tooltip"
               @click="addCondition()"
               v-if="!hasGroups()"
               aria-label="Add condition in group"
             >
               <i class="icon icon-075-save-2" aria-hidden="true"></i>
-            </button>
-            <button
+            </div>
+            <div
               class="toolbar__item item--show tooltip"
               @click="toggleType()"
               v-if="hasGroups() || hasConditions()"
               aria-label="Switch operator"
             >
               <span class="text-uppercase">{{ group.type }}</span>
-            </button>
-            <button
+            </div>
+            <div
               v-if="removable"
               class="toolbar__item item--show tooltip"
               @click="$emit('remove')"
               aria-label="Remove"
             >
               <i class="icon icon-202-clear-circle" aria-hidden="true"></i>
-            </button>
+            </div>
           </div>
         </div>
       </div>
