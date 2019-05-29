@@ -4,7 +4,7 @@ import store from './store/store.js';
 
 Vue.config.productionTip = false;
 
-new Vue({
+window.AOT = new Vue({
   render: h => h(App),
   data: { ...store },
 }).$mount('#app');

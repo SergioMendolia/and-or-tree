@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <AOTGroup :group.sync="$root.$data.root" />
+    <AOTGroup :group.sync="$root.$data.root" :removable="false" />
   </div>
 </template>
 
