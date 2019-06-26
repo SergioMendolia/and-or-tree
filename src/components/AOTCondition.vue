@@ -1,5 +1,6 @@
 <template>
-  <div class="condition row">
+  <div class="condition row" @mouseover="hover = true"
+       @mouseleave="hover = false">
     <label class="col-md-3">
       <select v-model="condition.field">
         <option :value="null">-</option>
@@ -26,13 +27,15 @@
         :disabled="condition.filter === null"
       />
     </label>
-    <div class="toolbar">
-      <div
-        class="toolbar__item item--disabled item--show tooltip"
-        @click="$emit('remove')"
-        aria-label="Remove condition"
-      >
-        <i class="icon icon-202-clear-circle" aria-hidden="true"></i>
+    <div class="toolbar" v-if="hover">
+      <div class="toolbar__item item--show tooltip" @click="$emit('remove')">
+        DELETE
+      </div>
+      <div class="toolbar__item item--show tooltip" @click="$emit('addor')">
+        +OR
+      </div>
+      <div class="toolbar__item item--show tooltip" @click="$emit('addand')">
+        +AND
       </div>
     </div>
   </div>
@@ -41,6 +44,12 @@
 <script>
 export default {
   name: 'AOTCondition',
+
+  data() {
+    return {
+      hover: false,
+    };
+  },
 
   props: {
     condition: {

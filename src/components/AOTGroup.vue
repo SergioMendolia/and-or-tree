@@ -11,16 +11,8 @@
           <div class="toolbar toolbar--vertical">
             <div
               class="toolbar__item item--show tooltip"
-              @click="addGroup('and')"
-              aria-label="Add group"
-            >
-              <i class="icon icon-028-folder-new" aria-hidden="true"></i>
-            </div>
-            <div
-              class="toolbar__item item--show tooltip"
               @click="addCondition()"
               v-if="!hasGroups()"
-              aria-label="Add condition in group"
             >
               <i class="icon icon-075-save-2" aria-hidden="true"></i>
             </div>
@@ -60,9 +52,14 @@
             <AOTCondition
               :condition.sync="condition"
               @remove="removeCondition(index)"
+              @addand="addToGroup(index, 'and')"
+              @addor="addToGroup(index, 'or')"
             />
           </li>
         </ul>
+        <div @click="addCondition()" v-if="!hasGroups()" class="add-condition">
+          +
+        </div>
       </div>
     </div>
   </div>
@@ -117,11 +114,14 @@ export default {
       this.hideActions();
     },
 
-    addGroup(type) {
-      let conditions = [_.clone(this.emptyCondition)];
+    addGroup(type, conditions = null) {
+      if (conditions === null) {
+        conditions = [_.clone(this.emptyCondition)];
+      }
+
       if (
         this.group.hasOwnProperty('conditions') &&
-        this.group.conditions.length >= 0
+        this.group.conditions.length > 0
       ) {
         conditions = this.group.conditions;
       }
@@ -130,7 +130,7 @@ export default {
         !this.group.hasOwnProperty('groups') ||
         this.group.groups.length === 0
       ) {
-        Vue.set(this.group, 'groups', [{ type, conditions }, { type }]);
+        Vue.set(this.group, 'groups', [{ type, conditions }]);
       } else {
         let groups = this.group.groups;
         groups.push({ type, conditions });
@@ -142,18 +142,37 @@ export default {
     },
 
     removeGroup(group) {
-      if (this.group.groups.length <= 2) {
+      if (this.group.groups.length <= 1) {
         Vue.set(this.group, 'groups', []);
+        this.addCondition();
       } else {
         Vue.delete(this.group.groups, group);
       }
     },
 
     removeCondition(condition) {
+      //If there is only no condition left (after removal), we remove the group.
       if (this.group.conditions.length <= 1) {
-        Vue.set(this.group, 'conditions', []);
+        this.$emit('remove');
+        //If the group is not removable, we replace the condition with an empty one
+        if (!this.removable) {
+          Vue.delete(this.group.conditions, condition);
+          this.addCondition();
+        }
       } else {
         Vue.delete(this.group.conditions, condition);
+      }
+    },
+
+    addToGroup(conditionIndex, groupType) {
+      let condition = _.clone(this.group.conditions[conditionIndex]);
+      Vue.delete(this.group.conditions, conditionIndex);
+      let remainingConditions = _.clone(this.group.conditions);
+      Vue.set(this.group, 'conditions', []);
+
+      this.addGroup(groupType, [condition, _.clone(this.emptyCondition)]);
+      if (remainingConditions.length > 0) {
+        this.addGroup(this.group.type, remainingConditions);
       }
     },
 
@@ -204,7 +223,7 @@ export default {
 <style lang="scss">
 .group {
   position: relative;
-  padding: 2px;
+  padding: 0 3px;
   border-left: 3px solid transparent;
   background-color: white;
   &--hover {
@@ -223,11 +242,32 @@ export default {
     border-radius: 5px;
     z-index: 999;
   }
+  .input-field {
+    margin-bottom: 0;
+  }
+  .add-condition {
+    background-color: black;
+    color: white;
+    width: 16px;
+    height: 16px;
+    font-size: 14px;
+    line-height: 14px;
+    text-align: center;
+    border-radius: 100%;
+    cursor: pointer;
+    margin: auto;
+  }
   &__or {
     border-color: green;
+    .add-condition {
+      background-color: green;
+    }
   }
   &__and {
     border-color: blue;
+    .add-condition {
+      background-color: blue;
+    }
   }
   ul {
     list-style-type: none;
