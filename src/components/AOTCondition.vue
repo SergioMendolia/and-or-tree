@@ -1,11 +1,14 @@
 <template>
-  <div class="condition row" @mouseover="hover = true"
-       @mouseleave="hover = false">
+  <div
+    class="condition row"
+    @mouseover="hover = true"
+    @mouseleave="hover = false"
+  >
     <label class="col-md-3">
-      <select v-model="condition.field">
+      <select v-model="condition.field" @change="resetCondition()">
         <option :value="null">-</option>
         <option :key="field" :value="field" v-for="field in getFields">{{
-          field
+          getFieldLabel(field)
         }}</option>
       </select>
     </label>
@@ -25,7 +28,14 @@
         type="text"
         v-model="condition.value"
         :disabled="condition.filter === null"
+        v-if="getFieldType(condition.field) !== 'select'"
       />
+      <Multiselect
+        v-model="condition.value"
+        v-else
+        :multiple="isMultiple(condition.field)"
+        :options="getFieldValues(condition.field)"
+      ></Multiselect>
     </label>
     <div class="toolbar" v-if="hover">
       <div class="toolbar__item item--show tooltip" @click="$emit('remove')">
@@ -42,8 +52,14 @@
 </template>
 
 <script>
+import Multiselect from 'vue-multiselect';
+
 export default {
   name: 'AOTCondition',
+
+  components: {
+    Multiselect,
+  },
 
   data() {
     return {
@@ -64,6 +80,34 @@ export default {
       }
       return [];
     },
+    getFieldLabel(field) {
+      if (this.getFieldDefinitions[field].label !== undefined) {
+        return this.getFieldDefinitions[field].label;
+      }
+      return field;
+    },
+    getFieldValues(field) {
+      if (this.getFieldDefinitions[field] !== undefined) {
+        return this.getFieldDefinitions[field].values;
+      }
+      return [];
+    },
+    getFieldType(field) {
+      if (this.getFieldDefinitions[field] !== undefined) {
+        return this.getFieldDefinitions[field].type;
+      }
+      return 'text';
+    },
+    isMultiple(field) {
+      if (this.getFieldDefinitions[field] !== undefined) {
+        return this.getFieldDefinitions[field].multiple;
+      }
+      return false;
+    },
+    resetCondition() {
+      this.condition.filter = null;
+      this.condition.value = null;
+    },
   },
 
   computed: {
@@ -76,6 +120,7 @@ export default {
   },
 };
 </script>
+<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
 <style lang="scss">
 .condition {
   width: 100%;
@@ -88,5 +133,14 @@ export default {
       margin: 0 !important;
     }
   }
+}
+.multiselect {
+  z-index: 999;
+}
+.multiselect__content-wrapper {
+  z-index: 9999;
+}
+.multiselect__input {
+  border: 0 !important;
 }
 </style>

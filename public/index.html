@@ -13,15 +13,19 @@
           fieldDefinitions: {
               fieldA: {
                   filters: ['in', 'start', 'not in', 'end'],
-                  type: String,
+                  type: 'string',
+
               },
               fieldB: {
                   filters: ['in', 'start', 'not in', 'end'],
-                  type: String,
+                  type: 'select',
+                  label: 'Le field B',
+                  values: ['dhjdhf','djhdj'],
+                  multiple: true,
               },
               fieldC: {
                   filters: ['='],
-                  type: Number,
+                  type: 'number',
               },
           },
 
