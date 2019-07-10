@@ -34,6 +34,8 @@
         v-model="condition.value"
         v-else
         :multiple="isMultiple(condition.field)"
+        label="name"
+        track-by="id"
         :disabled="condition.filter === null"
         :options="getFieldValues(condition.field)"
       ></Multiselect>
