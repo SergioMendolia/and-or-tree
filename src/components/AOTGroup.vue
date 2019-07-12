@@ -2,34 +2,20 @@
   <div :class="getGroupClasses()">
     <div class="row">
       <div class="col-md-1">
-        <div class="toolbar toolbar--vertical">
+        <div class="toolbar toolbar--vertical" v-if="getConditions().length>1 || hasGroups()">
           <div class="toolbar__item item--show" @click="toggleActions()">
             <i class="icon icon-053-more" aria-hidden="true"></i>
           </div>
         </div>
         <div class="drop" v-if="actionsDisplayed" @mouseleave="hideActions()">
           <div class="toolbar toolbar--vertical">
-            <div
-              class="toolbar__item item--show tooltip"
-              @click="addCondition()"
-              v-if="!hasGroups()"
-            >
+            <div class="toolbar__item item--show tooltip" @click="addCondition()" v-if="!hasGroups()">
               <i class="icon icon-075-save-2" aria-hidden="true"></i>
             </div>
-            <div
-              class="toolbar__item item--show tooltip"
-              @click="toggleType()"
-              v-if="hasGroups() || hasConditions()"
-              aria-label="Switch operator"
-            >
+            <div class="toolbar__item item--show tooltip" @click="toggleType()" v-if="hasGroups() || hasConditions()" aria-label="Switch operator">
               <span class="text-uppercase">{{ group.type }}</span>
             </div>
-            <div
-              v-if="removable"
-              class="toolbar__item item--show tooltip"
-              @click="$emit('remove')"
-              aria-label="Remove"
-            >
+            <div v-if="removable" class="toolbar__item item--show tooltip" @click="$emit('remove')" aria-label="Remove">
               <i class="icon icon-202-clear-circle" aria-hidden="true"></i>
             </div>
           </div>
@@ -39,22 +25,13 @@
         <ul v-if="hasGroups()">
           <template v-for="(subGroup, index) in getGroups()">
             <li :key="index" :class="`element element__${group.type}`">
-              <AOTGroup :group.sync="subGroup" @remove="removeGroup(index)" />
+              <AOTGroup :group.sync="subGroup" @remove="removeGroup(index)" @empty="empty(subGroup)" />
             </li>
           </template>
         </ul>
         <ul>
-          <li
-            :class="`element element__${group.type}`"
-            :key="index"
-            v-for="(condition, index) in getConditions()"
-          >
-            <AOTCondition
-              :condition.sync="condition"
-              @remove="removeCondition(index)"
-              @addand="addToGroup(index, 'and')"
-              @addor="addToGroup(index, 'or')"
-            />
+          <li :class="`element element__${group.type}`" :key="index" v-for="(condition, index) in getConditions()">
+            <AOTCondition :condition.sync="condition" @remove="removeCondition(index)" @addand="addToGroup(index, 'and')" @addor="addToGroup(index, 'or')" />
           </li>
         </ul>
         <div @click="addCondition()" v-if="!hasGroups()" class="add-condition">
@@ -100,44 +77,48 @@ export default {
       return classes;
     },
 
-    addCondition() {
-      if (
-        !this.group.hasOwnProperty('conditions') ||
-        this.group.conditions.length === 0
-      ) {
-        Vue.set(this.group, 'conditions', [_.clone(this.emptyCondition)]);
+    addCondition(condition = null) {
+      if (condition === null) {
+        condition = _.clone(this.emptyCondition);
+      }
+
+      if (!this.group.hasOwnProperty('conditions') || this.group.conditions.length === 0) {
+        Vue.set(this.group, 'conditions', [condition]);
       } else {
         let conditions = this.group.conditions;
         conditions.push(_.clone(this.emptyCondition));
         Vue.set(this.group, 'conditions', conditions);
       }
+
       this.hideActions();
     },
 
     addGroup(type, conditions = null) {
-      if (conditions === null) {
+
+      if (this.hasConditions()) {
+        conditions = this.group.conditions;
+      } else if (conditions === null) {
         conditions = [_.clone(this.emptyCondition)];
       }
 
-      if (
-        this.group.hasOwnProperty('conditions') &&
-        this.group.conditions.length > 0
-      ) {
-        conditions = this.group.conditions;
-      }
-
-      if (
-        !this.group.hasOwnProperty('groups') ||
-        this.group.groups.length === 0
-      ) {
-        Vue.set(this.group, 'groups', [{ type, conditions }]);
-      } else {
-        let groups = this.group.groups;
+      if(this.hasGroups()) {
+        let groups = this.getGroups();
         groups.push({ type, conditions });
-
         Vue.set(this.group, 'groups', groups);
+      } else {
+        if(this.getConditions().length === 1) {
+          //no groups and only one condition: we change group type and add condition
+          this.group.type  = this.group.type==='or'?'and':'or';
+          this.addCondition();
+
+        } else if ((this.getConditions().length >= 1)) {
+          //no groups and multiple conditions : we create 2 groups and split the conditions
+          let groups = [{ type, conditions }];
+          Vue.set(this.group, 'groups', groups);
+          Vue.set(this.group, 'conditions', []);
+
+        }
       }
-      Vue.set(this.group, 'conditions', []);
       this.hideActions();
     },
 
@@ -148,6 +129,19 @@ export default {
       } else {
         Vue.delete(this.group.groups, group);
       }
+      if (this.getGroups().length <= 1 && !this.hasConditions()) {
+        this.$emit('empty');
+      }
+    },
+
+    empty(group) {
+      const conditions = group.conditions;
+
+      for (let i = 0; i < conditions.length; i++) {
+        this.addCondition(conditions[i]);
+      }
+
+      this.removeGroup(group);
     },
 
     removeCondition(condition) {
@@ -162,13 +156,16 @@ export default {
       } else {
         Vue.delete(this.group.conditions, condition);
       }
+      if(this.getGroups().length<=1) {
+        this.$emit('empty');
+      }
     },
 
     addToGroup(conditionIndex, groupType) {
       let condition = _.clone(this.group.conditions[conditionIndex]);
-      Vue.delete(this.group.conditions, conditionIndex);
+
       let remainingConditions = _.clone(this.group.conditions);
-      Vue.set(this.group, 'conditions', []);
+      remainingConditions.splice(conditionIndex, 1);
 
       this.addGroup(groupType, [condition, _.clone(this.emptyCondition)]);
       if (remainingConditions.length > 0) {
@@ -186,18 +183,18 @@ export default {
       if (this.hasGroups()) {
         return this.group.groups;
       }
-      return {};
+      return [];
     },
 
     hasConditions() {
-      return this.group.hasOwnProperty('conditions');
+      return this.group.hasOwnProperty('conditions') && this.group.conditions.length > 0;
     },
 
     getConditions() {
       if (this.hasConditions()) {
         return this.group.conditions;
       }
-      return {};
+      return [];
     },
 
     toggleActions() {
