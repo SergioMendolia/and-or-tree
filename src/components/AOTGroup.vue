@@ -87,37 +87,22 @@ export default {
       } else {
         let conditions = this.group.conditions;
         conditions.push(_.clone(this.emptyCondition));
-        Vue.set(this.group, 'conditions', conditions);
+        this.group.conditions = conditions;
       }
 
       this.hideActions();
     },
 
-    addGroup(type, conditions = null) {
-
-      if (this.hasConditions()) {
-        conditions = this.group.conditions;
-      } else if (conditions === null) {
-        conditions = [_.clone(this.emptyCondition)];
-      }
+    addGroup(type, conditions) {
 
       if(this.hasGroups()) {
         let groups = this.getGroups();
         groups.push({ type, conditions });
         Vue.set(this.group, 'groups', groups);
       } else {
-        if(this.getConditions().length === 1) {
-          //no groups and only one condition: we change group type and add condition
-          this.group.type  = this.group.type==='or'?'and':'or';
-          this.addCondition();
-
-        } else if ((this.getConditions().length >= 1)) {
-          //no groups and multiple conditions : we create 2 groups and split the conditions
-          let groups = [{ type, conditions }];
-          Vue.set(this.group, 'groups', groups);
-          Vue.set(this.group, 'conditions', []);
-
-        }
+        let groups = [{ type, conditions }, { type: this.group.type, conditions: this.getConditions() }];
+        Vue.set(this.group, 'groups', groups);
+        Vue.delete(this.group, 'conditions');
       }
       this.hideActions();
     },
@@ -137,8 +122,10 @@ export default {
     empty(group) {
       const conditions = group.conditions;
 
-      for (let i = 0; i < conditions.length; i++) {
-        this.addCondition(conditions[i]);
+      if(conditions !== undefined) {
+        for (let i = 0; i < conditions.length; i++) {
+          this.addCondition(conditions[i]);
+        }
       }
 
       this.removeGroup(group);
@@ -162,15 +149,16 @@ export default {
     },
 
     addToGroup(conditionIndex, groupType) {
-      let condition = _.clone(this.group.conditions[conditionIndex]);
-
-      let remainingConditions = _.clone(this.group.conditions);
-      remainingConditions.splice(conditionIndex, 1);
-
-      this.addGroup(groupType, [condition, _.clone(this.emptyCondition)]);
-      if (remainingConditions.length > 0) {
-        this.addGroup(this.group.type, remainingConditions);
-      }
+        if(this.getConditions().length===1) {
+            this.group.type=groupType;
+            this.addCondition();
+        } else {
+            let remainingConditions = _.clone(this.group.conditions);
+            let condition = remainingConditions.splice(conditionIndex, 1);
+            condition = condition[0];
+            Vue.set(this.group, 'conditions', remainingConditions);
+            this.addGroup(groupType, [condition, _.clone(this.emptyCondition)]);
+        }
     },
 
     hasGroups() {

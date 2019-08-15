@@ -24,21 +24,21 @@
       </select>
     </label>
     <label class="input-field col-md-3" data-init="auto">
-      <input
-        type="text"
-        v-model="condition.value"
-        :disabled="condition.filter === null"
-        v-if="getFieldType(condition.field) !== 'select'"
-      />
       <Multiselect
         v-model="condition.value"
-        v-else
+        v-if="getFieldType(condition.field) === 'select'"
         :multiple="isMultiple(condition.field)"
         label="name"
         track-by="id"
         :disabled="condition.filter === null"
         :options="getFieldValues(condition.field)"
       ></Multiselect>
+      <input
+        type="text"
+        v-model="condition.value"
+        :disabled="condition.filter === null"
+        v-else
+      />
     </label>
     <div class="toolbar" v-if="hover">
       <div class="toolbar__item item--show tooltip" @click="$emit('remove')">
@@ -133,12 +133,31 @@ export default {
     select,
     input {
       width: 100%;
+      height:30px !important;
+      padding:2px;
       margin: 0 !important;
     }
   }
 }
+.toolbar{
+  line-height: 5px;
+  font-size: 0.8em;
+  .toolbar__item {
+    padding: 5px;
+  }
+}
 .multiselect {
   z-index: 999;
+  height:auto;
+  min-height: auto;
+  line-height: 6px;
+  &__tags{
+    padding: 2px 4px;
+    min-height: auto;
+  }
+  &__select{
+    height:28px
+  }
 }
 .multiselect__content-wrapper {
   z-index: 9999;
